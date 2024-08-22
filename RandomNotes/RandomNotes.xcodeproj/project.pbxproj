@@ -8,12 +8,12 @@
 
 /* Begin PBXBuildFile section */
 		D4232A3F2C77461700A4DF89 /* RandomNotesApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4232A3E2C77461700A4DF89 /* RandomNotesApp.swift */; };
-		D4232A412C77461700A4DF89 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4232A402C77461700A4DF89 /* ContentView.swift */; };
 		D4232A432C77461800A4DF89 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D4232A422C77461800A4DF89 /* Assets.xcassets */; };
 		D4232A472C77461800A4DF89 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D4232A462C77461800A4DF89 /* Preview Assets.xcassets */; };
 		D4232A512C77461800A4DF89 /* RandomNotesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4232A502C77461800A4DF89 /* RandomNotesTests.swift */; };
 		D4232A5B2C77461800A4DF89 /* RandomNotesUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4232A5A2C77461800A4DF89 /* RandomNotesUITests.swift */; };
 		D4232A5D2C77461800A4DF89 /* RandomNotesUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4232A5C2C77461800A4DF89 /* RandomNotesUITestsLaunchTests.swift */; };
+		D4232A692C776B3D00A4DF89 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4232A402C77461700A4DF89 /* ContentView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -259,7 +259,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D4232A412C77461700A4DF89 /* ContentView.swift in Sources */,
+				D4232A692C776B3D00A4DF89 /* ContentView.swift in Sources */,
 				D4232A3F2C77461700A4DF89 /* RandomNotesApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
