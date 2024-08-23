@@ -59,16 +59,16 @@ struct MusicStaffView: View {
 //        Note(pitch: .G, octave: 4),
 //        Note(pitch: .A, octave: 4),
 //        Note(pitch: .B, octave: 4),
-        Note(pitch: .C, octave: 5),
+//        Note(pitch: .C, octave: 5),
 //        Note(pitch: .D, octave: 5),
 //        Note(pitch: .E, octave: 5),
 //        Note(pitch: .F, octave: 5),
 //        Note(pitch: .G, octave: 5),
 //        Note(pitch: .A, octave: 5),
 //        Note(pitch: .B, octave: 5),
-        Note(pitch: .C, octave: 6),
+//        Note(pitch: .C, octave: 6),
 //        Note(pitch: .D, octave: 6),
-//        Note(pitch: .E, octave: 6),
+        Note(pitch: .E, octave: 6),
 //        Note(pitch: .F, octave: 6),
 //        Note(pitch: .G, octave: 6),
 //        Note(pitch: .A, octave: 6),
@@ -117,33 +117,32 @@ struct TrebleClefSymbol: View {
     }
 }
 
-//struct LedgerLines: View {
-//    let note: Note
+struct LedgerLines: View {
+    let note: Note
     
-//    var body: some View {
-//        VStack() {
-//            if note.staffPosition > 8 {
-//                // Notes below E4 require ledger lines below the staff
-//                ForEach(9...(Int(note.staffPosition)), id: \.self) { i in
-//                    if i % 2 == 0 {
-//                        Rectangle()
-//                            .frame(height: 2)
-//                            .foregroundColor(.black)
-//                            .offset(y: CGFloat(-i * 20 + 56))
-//                    }
-//                }
-//            } else if note.staffPosition < 0 {
-//                // Notes above F5 require ledger lines above the staff
-//                ForEach(0...(-(note.staffPosition / 2) - 3), id: \.self) { i in
-//                    Rectangle()
-//                        .frame(height: 2)
-//                        .foregroundColor(.black)
-//                        .offset(y: CGFloat(-i * 20 + 56))
-//                }
-//            }
-//        }
-//    }
-//}
+    var body: some View {
+        VStack() {
+            // Initialize the auxiliary line to be in the middle of the note (i.e. the line is the note line)
+            let note_line = note.line!
+            
+            // If the note is on a space, the auxiliary line is below the note (i.e. subtract 1)
+            if note.idx % 2 != 0 {
+                let note_line = note.space! - 1
+            }
+            
+            // If the note is above the fifth line/space of the staff, draw ledger lines above the staff
+            if note_line > 5 {
+                ForEach(6...note_line, id: \.self) { i in
+                    Rectangle()
+                        .frame(width: 40, height: 2)
+                        .foregroundColor(.black)
+                        .position(x: 150, y: StaffLine(line_num: i).staffPosition)
+                }
+            }
+            
+        }
+    }
+}
 
 struct NoteView: View {
     let note: Note
@@ -151,7 +150,7 @@ struct NoteView: View {
     var body: some View {
         ZStack {
             // Draw ledger lines if needed
-            // LedgerLines(note: note)
+            LedgerLines(note: note)
             
             // Draw the note
             Ellipse()
@@ -173,38 +172,51 @@ struct Note: Hashable {
     let pitch: Pitch
     let octave: Int
     
-    // Calculate the vertical position on the staff (y-axis in the UI)
-    var staffPosition: CGFloat {
-        
-        // Base note is C4 (middle C) and is assigned to index zero. Subsequent notes will increase/decrease from this base note
+    // Computed property for note index
+    var idx: Int {
         let baseNote = 0
-        
-        // Mapping notes to their positions relative to E4
         let pitchOffsets: [Pitch: Int] = [
             .C: 0, .D: 1, .E: 2, .F: 3, .G: 4, .A: 5, .B: 6
         ]
-        
-        // The number of positions moved vertically per octave is 7
         let octaveOffset = (octave - 4) * 7
-        
         var note_idx: Int = baseNote + octaveOffset + pitchOffsets[pitch]!
         
-        // Adjust notes with negative indexes, i.e. notes below C4, to correctly retrieve the negative line/space index
+        // Adjust notes with negative indexes, i.e., notes below C4
         if note_idx < 0 {
             note_idx = note_idx - 1
         }
-        
-        if note_idx % 2 == 0 {// if is a note over a line
-            let note_line = note_idx / 2
-            print(note_line)
+        return note_idx
+    }
+    
+    // Computed property to determine if the note is on a line or space
+    var isLine: Bool {
+        return idx % 2 == 0
+    }
+    
+    // Computed property for the note's line number
+    var line: Int? {
+        return isLine ? idx / 2 : nil
+    }
+    
+    // Computed property for the note's space number
+    var space: Int? {
+        return isLine ? nil : idx / 2
+    }
+    
+    // Calculate the vertical position on the staff (y-axis in the UI)
+    var staffPosition: CGFloat {
+        if isLine {
+            // if the note is over a line, calculate based on line number
+            let note_line = idx / 2
             return StaffLine(line_num: note_line).staffPosition
-        } else { // is a note over a space
-            let note_space = note_idx / 2
-            print(note_space)
+        } else {
+            // if the note is over a space, calculate based on space number
+            let note_space = idx / 2
             return StaffSpace(space_num: note_space).staffPosition
         }
     }
 }
+
 
 struct StaffSpace: Hashable {
     let space_num: Int
