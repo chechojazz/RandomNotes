@@ -29,12 +29,12 @@ struct MusicStaffView: View {
     let notes: [Note] = [
         Note(pitch: .E, octave: 3),
 //        Note(pitch: .C, octave: 4),
-        Note(pitch: .E, octave: 4),
-        Note(pitch: .G, octave: 4),
-        Note(pitch: .B, octave: 4),
-        Note(pitch: .E, octave: 5),
+//        Note(pitch: .E, octave: 4),
+//        Note(pitch: .G, octave: 4),
+//        Note(pitch: .B, octave: 4),
+//        Note(pitch: .E, octave: 5),
 //        Note(pitch: .F, octave: 4),
-        Note(pitch: .E, octave: 6),
+//        Note(pitch: .E, octave: 6),
     ]
     
     var body: some View {
@@ -76,17 +76,51 @@ struct TrebleClefSymbol: View {
     }
 }
 
+struct LedgerLines: View {
+    let note: Note
+    
+    var body: some View {
+        VStack() {
+            if note.staffPosition > 8 {
+                // Notes below E4 require ledger lines below the staff
+                ForEach(9...((note.staffPosition)), id: \.self) { i in
+                    if i % 2 == 0 {
+                        Rectangle()
+                            .frame(height: 2)
+                            .foregroundColor(.black)
+                            .offset(y: CGFloat(-i * 20 + 56))
+                    }
+                }
+            } else if note.staffPosition < 0 {
+                // Notes above F5 require ledger lines above the staff
+                ForEach(0...(-(note.staffPosition / 2) - 3), id: \.self) { i in
+                    Rectangle()
+                        .frame(height: 2)
+                        .foregroundColor(.black)
+                        .offset(y: CGFloat(-i * 20 + 56))
+                }
+            }
+        }
+    }
+}
+
 struct NoteView: View {
     let note: Note
     
     var body: some View {
-        Ellipse()
-            .frame(width: 25, height: 20)
-            .foregroundColor(.black)
-            .overlay(
-                Circle().stroke(Color.black, lineWidth: 2)
-            )
-            .position(x: 150, y: CGFloat(note.staffPosition) * 11 + 56)
+        ZStack {
+            // Draw ledger lines if needed
+            LedgerLines(note: note)
+            
+            // Draw the note
+            Ellipse()
+                .frame(width: 25, height: 20)
+                .foregroundColor(.black)
+                .overlay(
+                    Circle().stroke(Color.black, lineWidth: 2)
+                )
+                .position(x: 150, y: CGFloat(note.staffPosition) * 11 + 56)
+        }
     }
 }
 
@@ -115,8 +149,6 @@ struct Note: Hashable {
         let octaveOffset = (octave - 3) * 7
         
         let y_pos = baseNote - octaveOffset - pitchOffsets[pitch]!
-        
-        print(y_pos)
         
         return y_pos
     }
