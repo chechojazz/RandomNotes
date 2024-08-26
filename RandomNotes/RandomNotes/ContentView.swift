@@ -89,11 +89,21 @@ struct MusicStaffView: View {
             
             // Draw a treble clef symbol
             TrebleClefSymbol()
-                .position(x: 50, y: StaffLine(line_num: 2).staffPosition)
+                .position(x: 50, y: StaffLine(line_num: 2).yPos)
             
             // Draw each note on the staff
-            ForEach(notes, id: \.self) { note in
-                NoteView(note: note)
+            GeometryReader { geometry in
+                ZStack {
+                    StaffLines()
+                    
+                    // Calculate spacing based on the number of notes and the available width
+                    let totalWidth = geometry.size.width - 40 // Leave padding on both sides
+                    let spacing = totalWidth / CGFloat(notes.count) // Even spacing
+                    
+                    ForEach(Array(notes.enumerated()), id: \.element) { index, note in
+                        NoteView(note: note, xPos: CGFloat(index) * spacing + 150) // xPosition calculation
+                    }
+                }
             }
         }
     }
@@ -125,6 +135,7 @@ struct TrebleClefSymbol: View {
 struct LedgerLines: View {
     let top_line: Int
     let bottom_line: Int
+    let xPos: CGFloat
     
     var body: some View {
         ZStack() {
@@ -132,7 +143,7 @@ struct LedgerLines: View {
                 Rectangle()
                     .frame(width: 40, height: 2)
                     .foregroundColor(.black)
-                    .position(x: 150, y: StaffLine(line_num: i).staffPosition)
+                    .position(x: xPos, y: StaffLine(line_num: i).yPos)
             }
         }
     }
@@ -140,20 +151,21 @@ struct LedgerLines: View {
 
 struct NoteView: View {
     let note: Note
+    let xPos: CGFloat
     
     var body: some View {
         ZStack {
             // Draw ledger lines if needed
             // If the note is above the fifth line/space of the staff, draw ledger lines above the staff
             if note.line_space > 5 {
-                LedgerLines(top_line: note.line_space, bottom_line: 5)
+                LedgerLines(top_line: note.line_space, bottom_line: 5, xPos: xPos)
             }
             if note.line_space < 1 {
                 if note.isLine {
-                    LedgerLines(top_line: 0, bottom_line: note.line_space)
+                    LedgerLines(top_line: 0, bottom_line: note.line_space, xPos: xPos)
                 }else{
                     // If the note is in a space, bottom line is above the note (i.e. note space + 1)
-                    LedgerLines(top_line: 0, bottom_line: note.line_space + 1)
+                    LedgerLines(top_line: 0, bottom_line: note.line_space + 1, xPos: xPos)
                 }
             }
             // Draw the note
@@ -163,7 +175,7 @@ struct NoteView: View {
                 .overlay(
                     Circle().stroke(Color.black, lineWidth: 2)
                 )
-                .position(x: 150, y: note.staffPosition)
+                .position(x: xPos, y: note.yPos)
         }
     }
 }
@@ -209,13 +221,13 @@ struct Note: Hashable {
     
 
     // Calculate the vertical position on the staff (y-axis in the UI)
-    var staffPosition: CGFloat {
+    var yPos: CGFloat {
         if isLine {
             // if the note is over a line, calculate based on line number
-            return StaffLine(line_num: line_space).staffPosition
+            return StaffLine(line_num: line_space).yPos
         } else {
             // if the note is over a space, calculate based on space number
-            return StaffSpace(space_num: line_space).staffPosition
+            return StaffSpace(space_num: line_space).yPos
         }
     }
 }
@@ -224,7 +236,7 @@ struct Note: Hashable {
 struct StaffSpace: Hashable {
     let space_num: Int
     
-    var staffPosition: CGFloat {
+    var yPos: CGFloat {
         // Spaces are numbered from bottom to top starting at the first space below the first line of the staff
         // Base space is the fifth space (i.e. space above the fifth/top line of the staff)
         let baseSpace = 10
@@ -236,7 +248,7 @@ struct StaffSpace: Hashable {
 struct StaffLine: Hashable {
     let line_num: Int
     
-    var staffPosition: CGFloat {
+    var yPos: CGFloat {
         // Lines are numbered from bottom to top starting at the first line of the staff
         // Base line is the fifth line of the staff with an offset of STAFF_LINE_LEAP/2
         let y_pos = (CGFloat((BASE_TOP_LINE - line_num)) * STAFF_LINE_LEAP) + STAFF_LINE_LEAP / 2
