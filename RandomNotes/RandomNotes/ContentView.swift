@@ -13,6 +13,7 @@ var WINDOW_HEIGHT: CGFloat = 400
 // Title constants
 var TITLE_HEIGHT: CGFloat = 50
 var TITLE_YPOS: CGFloat = 20
+
 // Staff constants
 let NUM_STAFF_LINES: Int = 5
 var STAFF_LINE_SPACING: CGFloat = 20
@@ -20,8 +21,10 @@ var STAFF_LINE_WIDTH: CGFloat = 2
 var STAFF_LINE_LEAP: CGFloat = 22 //STAFF_LINE_SPACING + STAFF_LINE_WIDTH
 var STAFF_HEIGHT: CGFloat = (STAFF_LINE_LEAP) * CGFloat(NUM_STAFF_LINES)
 var STAFF_SPACING: CGFloat = 150
+
 // Music symbols constants
 var TREBLE_CLEF_HEIGHT: CGFloat = STAFF_HEIGHT * 2
+var TREBLE_CLEF_OFFSET: CGFloat = -40
 var NOTE_HEIGHT: CGFloat = 20
 var NOTE_WIDTH: CGFloat = 25
 
@@ -47,12 +50,12 @@ struct ContentView: View {
 
 struct MusicStaffView: View {
     let notes: [Note] = [
-//        Note(pitch: .E, octave: 3),
+        Note(pitch: .E, octave: 3),
 //        Note(pitch: .F, octave: 3),
 //        Note(pitch: .G, octave: 3),
 //        Note(pitch: .A, octave: 3),
 //        Note(pitch: .B, octave: 3),
-        Note(pitch: .C, octave: 4),
+//        Note(pitch: .C, octave: 4),
 //        Note(pitch: .D, octave: 4),
 //        Note(pitch: .E, octave: 4),
 //        Note(pitch: .F, octave: 4),
@@ -68,7 +71,7 @@ struct MusicStaffView: View {
 //        Note(pitch: .B, octave: 5),
 //        Note(pitch: .C, octave: 6),
 //        Note(pitch: .D, octave: 6),
-        Note(pitch: .E, octave: 6),
+//        Note(pitch: .E, octave: 6),
 //        Note(pitch: .F, octave: 6),
 //        Note(pitch: .G, octave: 6),
 //        Note(pitch: .A, octave: 6),
@@ -113,33 +116,22 @@ struct TrebleClefSymbol: View {
         Text("𝄞") // Unicode for treble clef symbol
             .font(.system(size: TREBLE_CLEF_HEIGHT))
             .foregroundColor(.white)
-            .offset(y: -40)
+            .offset(y: TREBLE_CLEF_OFFSET)
     }
 }
 
 struct LedgerLines: View {
-    let note: Note
+    let top_line: Int
+    let bottom_line: Int
     
     var body: some View {
-        VStack() {
-            // Initialize the auxiliary line to be in the middle of the note (i.e. the line is the note line)
-            let note_line = note.line!
-            
-            // If the note is on a space, the auxiliary line is below the note (i.e. subtract 1)
-            if note.idx % 2 != 0 {
-                let note_line = note.space! - 1
+        ZStack() {
+            ForEach(bottom_line...top_line, id: \.self) { i in
+                Rectangle()
+                    .frame(width: 40, height: 2)
+                    .foregroundColor(.black)
+                    .position(x: 150, y: StaffLine(line_num: i).staffPosition)
             }
-            
-            // If the note is above the fifth line/space of the staff, draw ledger lines above the staff
-            if note_line > 5 {
-                ForEach(6...note_line, id: \.self) { i in
-                    Rectangle()
-                        .frame(width: 40, height: 2)
-                        .foregroundColor(.black)
-                        .position(x: 150, y: StaffLine(line_num: i).staffPosition)
-                }
-            }
-            
         }
     }
 }
@@ -147,11 +139,26 @@ struct LedgerLines: View {
 struct NoteView: View {
     let note: Note
     
+    init(note: Note) {
+        self.note = note
+        print("Note line_space: \(note.line_space)")
+    }
+    
     var body: some View {
         ZStack {
             // Draw ledger lines if needed
-            LedgerLines(note: note)
-            
+            // If the note is above the fifth line/space of the staff, draw ledger lines above the staff
+            if note.line_space > 5 {
+                LedgerLines(top_line: note.line_space, bottom_line: 5)
+            }
+            if note.line_space < 1 {
+                if note.isLine {
+                    LedgerLines(top_line: 0, bottom_line: note.line_space)
+                }else{
+                    // If the note is in a space, bottom line is above the note (i.e. note space + 1)
+                    LedgerLines(top_line: 0, bottom_line: note.line_space + 1)
+                }
+            }
             // Draw the note
             Ellipse()
                 .frame(width: NOTE_WIDTH, height: NOTE_HEIGHT)
@@ -174,17 +181,17 @@ struct Note: Hashable {
     
     // Computed property for note index
     var idx: Int {
-        let baseNote = 0
+        let middleC = Note(pitch: .C, octave: 4)
         let pitchOffsets: [Pitch: Int] = [
             .C: 0, .D: 1, .E: 2, .F: 3, .G: 4, .A: 5, .B: 6
         ]
-        let octaveOffset = (octave - 4) * 7
-        var note_idx: Int = baseNote + octaveOffset + pitchOffsets[pitch]!
+        let octaveOffset = (octave - middleC.octave) * 7
+        let note_idx: Int = pitchOffsets[middleC.pitch]! + octaveOffset + pitchOffsets[pitch]!
         
         // Adjust notes with negative indexes, i.e., notes below C4
-        if note_idx < 0 {
-            note_idx = note_idx - 1
-        }
+//        if note_idx < 0 {
+//            note_idx = note_idx - 1
+//        }
         return note_idx
     }
     
@@ -194,25 +201,24 @@ struct Note: Hashable {
     }
     
     // Computed property for the note's line number
-    var line: Int? {
-        return isLine ? idx / 2 : nil
+    var line_space: Int {
+        if idx <= 0 {
+            //  Adjust notes with negative indexes, i.e., notes below C4
+            return (idx - 1) / 2
+        }else{
+            return idx / 2
+        }
     }
     
-    // Computed property for the note's space number
-    var space: Int? {
-        return isLine ? nil : idx / 2
-    }
-    
+
     // Calculate the vertical position on the staff (y-axis in the UI)
     var staffPosition: CGFloat {
         if isLine {
             // if the note is over a line, calculate based on line number
-            let note_line = idx / 2
-            return StaffLine(line_num: note_line).staffPosition
+            return StaffLine(line_num: line_space).staffPosition
         } else {
             // if the note is over a space, calculate based on space number
-            let note_space = idx / 2
-            return StaffSpace(space_num: note_space).staffPosition
+            return StaffSpace(space_num: line_space).staffPosition
         }
     }
 }
