@@ -33,16 +33,39 @@ var NOTE_HEIGHT: CGFloat = 20
 var NOTE_WIDTH: CGFloat = 25
 
 struct ContentView: View {
+    @State private var notes: [Note] = []
 
     var body: some View {
         VStack {
             Text("Random Notes")
                 .frame(height: TITLE_HEIGHT)
                 .font(.title)
-            MusicStaffView()
+            
+            // Button to generate random notes
+            Button(action: generateRandomNotes) {
+                Text("Generate Random Notes")
+                    .padding()
+                    .background(Color.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(8)
+            }
+            
+            MusicStaffView(notes: notes)
                 .frame(height: STAFF_FRAME_HEIGHT)
         }
         .padding()
+    }
+    // Function to generate random notes
+    func generateRandomNotes() {
+        let numberOfNotes = 5
+        let pitches: [Pitch] = [.G, .A, .B, .C, .D, .E, .F] // Limit pitches to within G3 to G5
+        let octaves: [Int] = [3, 4, 5]
+        
+        notes = (0..<numberOfNotes).map { _ in
+            let randomPitch = pitches.randomElement()!
+            let randomOctave = octaves.randomElement()!
+            return Note(pitch: randomPitch, octave: randomOctave)
+        }
     }
 }
 
@@ -51,10 +74,12 @@ struct ContentView: View {
 }
 
 struct MusicStaffView: View {
-    let notes: [Note] = [
+    let notes: [Note]
+
+//    let notes: [Note] = [
 //        Note(pitch: .E, octave: 3),
 //        Note(pitch: .F, octave: 3),
-        Note(pitch: .G, octave: 3),
+//        Note(pitch: .G, octave: 3),
 //        Note(pitch: .A, octave: 3),
 //        Note(pitch: .B, octave: 3),
 //        Note(pitch: .C, octave: 4),
@@ -64,7 +89,7 @@ struct MusicStaffView: View {
 //        Note(pitch: .G, octave: 4),
 //        Note(pitch: .A, octave: 4),
 //        Note(pitch: .B, octave: 4),
-        Note(pitch: .C, octave: 5),
+//        Note(pitch: .C, octave: 5),
 //        Note(pitch: .D, octave: 5),
 //        Note(pitch: .E, octave: 5),
 //        Note(pitch: .F, octave: 5),
@@ -73,14 +98,14 @@ struct MusicStaffView: View {
 //        Note(pitch: .B, octave: 5),
 //        Note(pitch: .C, octave: 6),
 //        Note(pitch: .D, octave: 6),
-        Note(pitch: .E, octave: 6),
+//        Note(pitch: .E, octave: 6),
 //        Note(pitch: .F, octave: 6),
 //        Note(pitch: .G, octave: 6),
 //        Note(pitch: .A, octave: 6),
 //        Note(pitch: .B, octave: 6),
 //        Note(pitch: .C, octave: 7),
-        Note(pitch: .D, octave: 7),
-    ]
+//        Note(pitch: .D, octave: 7),
+//    ]
     
     var body: some View {
         ZStack {
@@ -98,7 +123,7 @@ struct MusicStaffView: View {
                     
                     // Calculate spacing based on the number of notes and the available width
                     let totalWidth = geometry.size.width - 40 // Leave padding on both sides
-                    let spacing = totalWidth / CGFloat(notes.count) // Even spacing
+                    let spacing = totalWidth / CGFloat(max(notes.count - 1, 1)) // Even spacing
                     
                     ForEach(Array(notes.enumerated()), id: \.element) { index, note in
                         NoteView(note: note, xPos: CGFloat(index) * spacing + 150) // xPosition calculation
@@ -127,7 +152,7 @@ struct TrebleClefSymbol: View {
     var body: some View {
         Text("𝄞") // Unicode for treble clef symbol
             .font(.system(size: TREBLE_CLEF_HEIGHT))
-            .foregroundColor(.white)
+            .foregroundColor(.black)
             .offset(y: TREBLE_CLEF_OFFSET)
     }
 }
