@@ -16,11 +16,15 @@ var TITLE_YPOS: CGFloat = 20
 
 // Staff constants
 let NUM_STAFF_LINES: Int = 5
+let NUM_TOP_AUX_LINES: Int = 7
+let NUM_BOTTOM_AUX_LINES: Int = 3
 var STAFF_LINE_SPACING: CGFloat = 20
 var STAFF_LINE_WIDTH: CGFloat = 2
 var STAFF_LINE_LEAP: CGFloat = 22 //STAFF_LINE_SPACING + STAFF_LINE_WIDTH
 var STAFF_HEIGHT: CGFloat = (STAFF_LINE_LEAP) * CGFloat(NUM_STAFF_LINES)
 var STAFF_SPACING: CGFloat = 150
+var STAFF_FRAME_HEIGHT: CGFloat = (STAFF_LINE_LEAP) * CGFloat(NUM_STAFF_LINES + NUM_TOP_AUX_LINES + NUM_BOTTOM_AUX_LINES)
+var BASE_TOP_LINE: Int = NUM_STAFF_LINES + NUM_TOP_AUX_LINES - 2
 
 // Music symbols constants
 var TREBLE_CLEF_HEIGHT: CGFloat = STAFF_HEIGHT * 2
@@ -35,12 +39,10 @@ struct ContentView: View {
             Text("Random Notes")
                 .frame(height: TITLE_HEIGHT)
                 .font(.title)
-//                .position(y: TITLE_YPOS)
             MusicStaffView()
-                .frame(height: STAFF_HEIGHT)
-//                .position(y: STAFF_SPACING)
+                .frame(height: STAFF_FRAME_HEIGHT)
         }
-//        .padding()
+        .padding()
     }
 }
 
@@ -50,9 +52,9 @@ struct ContentView: View {
 
 struct MusicStaffView: View {
     let notes: [Note] = [
-        Note(pitch: .E, octave: 3),
+//        Note(pitch: .E, octave: 3),
 //        Note(pitch: .F, octave: 3),
-//        Note(pitch: .G, octave: 3),
+        Note(pitch: .G, octave: 3),
 //        Note(pitch: .A, octave: 3),
 //        Note(pitch: .B, octave: 3),
 //        Note(pitch: .C, octave: 4),
@@ -62,7 +64,7 @@ struct MusicStaffView: View {
 //        Note(pitch: .G, octave: 4),
 //        Note(pitch: .A, octave: 4),
 //        Note(pitch: .B, octave: 4),
-//        Note(pitch: .C, octave: 5),
+        Note(pitch: .C, octave: 5),
 //        Note(pitch: .D, octave: 5),
 //        Note(pitch: .E, octave: 5),
 //        Note(pitch: .F, octave: 5),
@@ -71,13 +73,13 @@ struct MusicStaffView: View {
 //        Note(pitch: .B, octave: 5),
 //        Note(pitch: .C, octave: 6),
 //        Note(pitch: .D, octave: 6),
-//        Note(pitch: .E, octave: 6),
+        Note(pitch: .E, octave: 6),
 //        Note(pitch: .F, octave: 6),
 //        Note(pitch: .G, octave: 6),
 //        Note(pitch: .A, octave: 6),
 //        Note(pitch: .B, octave: 6),
 //        Note(pitch: .C, octave: 7),
-//        Note(pitch: .D, octave: 7),
+        Note(pitch: .D, octave: 7),
     ]
     
     var body: some View {
@@ -138,11 +140,6 @@ struct LedgerLines: View {
 
 struct NoteView: View {
     let note: Note
-    
-    init(note: Note) {
-        self.note = note
-        print("Note line_space: \(note.line_space)")
-    }
     
     var body: some View {
         ZStack {
@@ -230,7 +227,7 @@ struct StaffSpace: Hashable {
     var staffPosition: CGFloat {
         // Spaces are numbered from bottom to top starting at the first space below the first line of the staff
         // Base space is the fifth space (i.e. space above the fifth/top line of the staff)
-        let baseSpace = 5
+        let baseSpace = 10
         let y_pos = CGFloat((baseSpace - space_num)) * STAFF_LINE_LEAP
         return y_pos
     }
@@ -242,8 +239,7 @@ struct StaffLine: Hashable {
     var staffPosition: CGFloat {
         // Lines are numbered from bottom to top starting at the first line of the staff
         // Base line is the fifth line of the staff with an offset of STAFF_LINE_LEAP/2
-        let baseLine = 5
-        let y_pos = (CGFloat((baseLine - line_num)) * STAFF_LINE_LEAP) + STAFF_LINE_LEAP / 2
+        let y_pos = (CGFloat((BASE_TOP_LINE - line_num)) * STAFF_LINE_LEAP) + STAFF_LINE_LEAP / 2
         return y_pos
     }
 }
